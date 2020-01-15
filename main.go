@@ -1,36 +1,62 @@
 package main
 
 import (
+	"bufio"
 	"errors"
-	"flag"
 	"fmt"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
 )
 
 func main() {
-	fmt.Println("String evaluation approach of a simple calculator")
-	var input *string
+	fmt.Println("Please input the expression: ")
+	for {
+		fmt.Print("->")
+		input, inputErr := userInput()
+		*input = strings.TrimSpace(*input)
+		if inputErr != nil {
+			fmt.Println(inputErr)
+			return
+		}
+		errBracket := doBracket(input)
+		if errBracket != nil {
+			fmt.Println(errBracket)
+			return
+		}
+		errMultiplyDivide := doMultiplyDivide(input)
+		if errMultiplyDivide != nil {
+			fmt.Println(errMultiplyDivide)
+			return
+		}
+		errPlusMinus := doPlusMinus(input)
+		if errPlusMinus != nil {
+			fmt.Println(errPlusMinus)
+			return
+		}
+		result := displayResult(*input)
+		fmt.Printf("Result = %v\n", result)
+	}
+}
 
-	input = flag.String("input", "3*(3-1)*3.7/5+23*243", "input the expression to evaluate")
-	flag.Parse()
-	errBracket := doBracket(input)
-	if errBracket != nil {
-		fmt.Println(errBracket)
-		return
+func displayResult(input string) string {
+	for i := len(input) - 1; i > 0; i-- {
+		if input[len(input)-1] == []byte(".")[0] {
+			return input[:len(input)-1]
+		}
+		input = strings.TrimSuffix(input, "0")
 	}
-	errMultiplyDivide := doMultiplyDivide(input)
-	if errMultiplyDivide != nil {
-		fmt.Println(errMultiplyDivide)
-		return
+	return input
+}
+
+func userInput() (*string, error) {
+	reader := bufio.NewReader(os.Stdin)
+	input, err := reader.ReadString('\n')
+	if err != nil {
+		return nil, errors.New("Input not valid, try again")
 	}
-	errPlusMinus := doPlusMinus(input)
-	if errPlusMinus != nil {
-		fmt.Println(errPlusMinus)
-		return
-	}
-	fmt.Printf("Result: %v", *input)
+	return &input, nil
 }
 
 func doBracket(ms *string) error {
@@ -59,7 +85,6 @@ func doMultiplyDivide(ms *string) error {
 	if s == "" {
 		return nil
 	}
-
 	result, err := stringExpression(s)
 	if err != nil {
 		return err
