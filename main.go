@@ -132,6 +132,9 @@ func stringExpression(s string) (string, error) {
 	case "*":
 		result = nums[0] * nums[1]
 	case "/":
+		if nums[1] == 0 {
+			return "", errors.New("divide by 0 is not allowed")
+		}
 		result = nums[0] / nums[1]
 	default:
 		return "", fmt.Errorf("can not recongnize the operator: %v", op)
